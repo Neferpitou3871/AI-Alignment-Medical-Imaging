@@ -1,27 +1,18 @@
-Medfusion - Medical Denoising Diffusion Probabilistic Model 
+AI Alignment in Medical Imaging: Unveiling Hidden Biases Through Counterfactual Analysis
 =============
 
-Paper
-=======
-Please see: [**Diffusion Probabilistic Models beat GANs on Medical 2D Images**](https://arxiv.org/abs/2212.07501)
 
-![](media/Medfusion.png)
-*Figure: Medfusion*
+![](media/DLDM.png)
+*Figure: Architecture of DLDM*
 
-![](media/animation_eye.gif) ![](media/animation_histo.gif) ![](media/animation_chest.gif)\
-*Figure: Eye fundus, chest X-ray and colon histology images generated with Medfusion (Warning color quality limited by .gif)*
+The project is built with these pytorch libraries:
+1. [Pytorch](https://pytorch.org/) - PyTorch + CUDA
+2. [Pytorch-Lightning](https://lightning.ai/docs/pytorch/stable/) - pytorch lightning training/inference framework
+3. [Scikit-learn]() - Statistical learning models
 
-Demo
+Install Environment
 =============
-[Link](https://huggingface.co/spaces/mueller-franzes/medfusion-app) to streamlit app.
-
-Install
-=============
-
-Create virtual environment and install packages: \
-`python -m venv venv` \
-`source venv/bin/activate`\
-`pip install -e .`
+python -m pip install -r requirements.txt
 
 
 Get Started 
@@ -30,32 +21,28 @@ Get Started
 1 Prepare Data
 -------------
 
-* Go to [medical_diffusion/data/datasets/dataset_simple_2d.py](medical_diffusion/data/datasets/dataset_simple_2d.py) and create a new `SimpleDataset2D` or write your own Dataset. 
+* TO run the experiments, you need to download the open datasets ([CheXpert: Chest X-rays](https://stanfordaimi.azurewebsites.net/datasets/8cbd9ed4-2eb9-4565-affc-111cf4f7ebe2)) and [MIMIC-CXR](https://physionet.org/content/mimic-cxr-jpg/2.1.0/). You could also create your own datasets with similar structure.
 
 
-2 Train Autoencoder 
+2 Train the first-stage autoencoder
 ----------------
-* Go to [scripts/train_latent_embedder_2d.py](scripts/train_latent_embedder_2d.py) and import your Dataset. 
-* Load your dataset with eg. `SimpleDataModule` 
-* Customize `VAE` to your needs 
-* (Optional): Train a `VAEGAN` instead or load a pre-trained `VAE` and set `start_gan_train_step=-1` to start training of GAN immediately.
+* Execute [train_latent_embedder_2d.py](train_embedder.py) to build the latent embedder.
+Note: In the training script, you need to reset the directory pointer to the place you put your dataset. If the the code is run on LINUX, switch to LINUX=True.
 
-2.1 Evaluate Autoencoder 
+3 Train Diffusion + disentangling module
 ----------------
-* Use [scripts/evaluate_latent_embedder.py](scripts/evaluate_latent_embedder.py) to evaluate the performance of the Autoencoder. 
+* Execute [train_ldm.py](train_ldm.py) to train the latent diffusion model. 
+* Execute [train_disentangler.py](train_disentangler.py) to train the disentangler (with the loaded latent diffusion model).
 
-3 Train Diffusion 
+4. Generation of Counterfactual images
 ----------------
-* Go to [scripts/train_diffusion.py](scripts/train_diffusion.py) and import/load your Dataset as before.
-* Load your pre-trained VAE or VAEGAN with `latent_embedder_checkpoint=...` 
-* Use `cond_embedder = LabelEmbedder` for conditional training, otherwise  `cond_embedder = None`  
-
-3.1 Evaluate Diffusion 
-----------------
-* Go to [scripts/sample.py](scripts/sample.py) to sample a test image.
-* Go to [scripts/helpers/sample_dataset.py](scripts/helpers/sample_dataset.py) to sample a more reprensative sample size.
-* Use [scripts/evaluate_images.py](scripts/evaluate_images.py) to evaluate performance of sample (FID, Precision, Recall)
+* Execute [sample_ctf.py](sample_ctf.py) to generate the counterfactual images.
 
 Acknowledgment 
 =============
-* Code builds upon https://github.com/lucidrains/denoising-diffusion-pytorch 
+* Code builds upon https://github.com/[anonymous]
+
+Visualizations of some counterfactual images
+=============
+![](media/chexpert-ctf.png) 
+*Figure: Generated Counterfactual image samples for the testing*
